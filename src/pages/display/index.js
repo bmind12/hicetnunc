@@ -1006,8 +1006,8 @@ export default class Display extends Component {
                 {!this.state.loading && this.state.creationsState && (
                     <div>
                         <Container>
-                            <Padding>
-                                {this.state.filter && (
+                            {this.state.filter && (
+                                <Padding>
                                     <div
                                         style={{
                                             display: 'flex',
@@ -1051,8 +1051,8 @@ export default class Display extends Component {
                                             </div>
                                         </Button>
                                     </div>
-                                )}
-                            </Padding>
+                                </Padding>
+                            )}
                         </Container>
                         <Container xlarge>
                             {this.state.collectionType == 'forSale' ? (
