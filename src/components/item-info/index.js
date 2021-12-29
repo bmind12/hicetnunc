@@ -14,235 +14,275 @@ import classNames from 'classnames'
 const _ = require('lodash')
 
 export const ItemInfo = ({
-  id,
-  swaps,
-  creator,
-  is_signed,
-  token_signatures,
-  feed,
-  token_holders,
-  supply,
-  isDetailView,
-  restricted
+    id,
+    swaps,
+    creator,
+    is_signed,
+    token_signatures,
+    feed,
+    token_holders,
+    supply,
+    isDetailView,
+    restricted,
 }) => {
-  const { syncTaquito, collect, curate, claim_hDAO, acc } =
-    useContext(HicetnuncContext)
+    const { syncTaquito, collect, curate, claim_hDAO, acc } =
+        useContext(HicetnuncContext)
 
-  const [showSignStatus, setShowSignStatus] = useState(false)
+    const [showSignStatus, setShowSignStatus] = useState(false)
 
-  const reducer = (accumulator, currentValue) =>
-    parseInt(accumulator) + parseInt(currentValue)
+    const reducer = (accumulator, currentValue) =>
+        parseInt(accumulator) + parseInt(currentValue)
 
-  if (isDetailView) {
-    // subtract burned pieces from total
-    let total = 0
+    if (isDetailView) {
+        // subtract burned pieces from total
+        let total = 0
 
-    total = supply
-    let ed =
-      token_holders.filter(
-        (e) => e.holder_id === 'KT1HbQepzV1nVGg8QVznG7z4RcHseD5kwqBn'
-      ).length > 0
-        ? token_holders.filter(
-          (e) => e.holder_id === 'KT1HbQepzV1nVGg8QVznG7z4RcHseD5kwqBn'
-        )[0].quantity
-        : 'X'
-    swaps = swaps.filter(e => parseInt(e.contract_version) === 2 && parseInt(e.status) === 0 && e.is_valid)
-    console.log(swaps)
-    let s = _.minBy(swaps, (o) => Number(o.price))
-    let maxPrice = _.maxBy(swaps, (o) => Number(o.price))
+        total = supply
+        let ed =
+            token_holders.filter(
+                (e) => e.holder_id === 'KT1HbQepzV1nVGg8QVznG7z4RcHseD5kwqBn'
+            ).length > 0
+                ? token_holders.filter(
+                      (e) =>
+                          e.holder_id === 'KT1HbQepzV1nVGg8QVznG7z4RcHseD5kwqBn'
+                  )[0].quantity
+                : 'X'
+        swaps = swaps.filter(
+            (e) =>
+                parseInt(e.contract_version) === 2 &&
+                parseInt(e.status) === 0 &&
+                e.is_valid
+        )
+        console.log(swaps)
+        let s = _.minBy(swaps, (o) => Number(o.price))
+        let maxPrice = _.maxBy(swaps, (o) => Number(o.price))
 
-    var message = ''
+        var message = ''
 
-    try {
-      message =
-        swaps[0] !== undefined
-          ? 'collect for ' + Number(s.price) / 1000000 + ' tez'
-          : 'not for sale'
-    } catch (e) {
-      message = 'not for sale'
-    }
+        try {
+            message =
+                swaps[0] !== undefined
+                    ? 'collect for ' + Number(s.price) / 1000000 + ' tez'
+                    : 'not for sale'
+        } catch (e) {
+            message = 'not for sale'
+        }
 
-    const handleCollect = () => {
-      if (acc == null) {
-        syncTaquito()
-      } else {
-        collect(s.id, s.price * 1)
-      }
-    }
+        const handleCollect = () => {
+            if (acc == null) {
+                syncTaquito()
+            } else {
+                collect(s.id, s.price * 1)
+            }
+        }
 
-    const curateOrClaim = (id, balance = 0) => {
-      // if user is creator and there's hDAO balance
-      if (acc && acc.address === creator.address && balance > 0) {
-        claim_hDAO(balance, id)
-      } else {
-        curate(id)
-      }
-    }
+        const curateOrClaim = (id, balance = 0) => {
+            // if user is creator and there's hDAO balance
+            if (acc && acc.address === creator.address && balance > 0) {
+                claim_hDAO(balance, id)
+            } else {
+                curate(id)
+            }
+        }
 
-    const renderHDAObutton = (id, balance) => {
-      return (
-        <Button onClick={() => curate(id)}>
-          <Primary>
-            <span
-              className={styles.top}
-              data-position={'top'}
-              data-tooltip={'curate'}
-            >
-              〇
-            </span>
-          </Primary>
-        </Button>
-      )
-    }
-
-    // Check collab status
-    const isCollab = creator.is_split
-    const verifiedSymbol = isCollab && is_signed ? '✓ ' : '⚠️'
-    const verifiedStatus = isCollab && is_signed ? 'VERIFIED' : 'UNVERIFIED'
-    const isCoreParticipant = isCollab ? creator.shares[0].shareholder.find(h => h.holder_id === acc?.address) : false
-
-    // Show the signing UI if required
-    const userHasSigned = token_signatures.find(sig => sig.holder_id === acc?.address)
-    const coreParticipants = isCollab ? creator.shares[0].shareholder.filter(h => h.holder_type === CollaboratorType.CORE_PARTICIPANT) : null
-
-    const signStatusStyles = classNames(
-      collabStyles.flexBetween,
-      collabStyles.alignStart
-    )
-
-    return (
-      <>
-        <div style={{ height: '30px' }}></div>
-        <div className={styles.container}>
-          <div className={styles.edition}>
-
-            <div className={collabStyles.relative}>
-              <div className={styles.inline}>
-
-                {isCollab && (
-                  <CollabIssuerInfo creator={creator} />
-                )}
-
-                {!isCollab && (
-                  <Button to={`${PATH.ISSUER}/${creator.address}`}>
-                    {creator.name ? (
-                      <Primary>{encodeURI(creator.name)}</Primary>
-                    ) : (
-                      <Primary>{walletPreview(creator.address)}</Primary>
-                    )}
-                  </Button>
-                )}
-              </div>
-            </div>
-
-            {!feed && (
-              <div>
-                <p>
-                  <span>
-                    <span className={styles.edition__title}>editions:&nbsp;</span>
-                    <span>
-                      {ed}/{total}
-                    </span>
-                  </span>
-                </p>
-              </div>
-            )}
-          </div>
-
-          {feed && (
-            <div className={styles.objktContainer}>
-              <Button to={`${PATH.OBJKT}/${id}`} disabled={isDetailView}>
-                <Primary>OBJKT&nbsp;#{id}</Primary>
-              </Button>
-            </div>
-          )}
-        </div>
-
-        {/* SHOW SIGNING UI IF COLLABORATOR */}
-        {isDetailView && isCollab && isCoreParticipant && !userHasSigned && (
-          <div className={styles.container} style={{ paddingTop: 0 }}>
-            <SigningUI id={id} hasSigned={false} />
-          </div>
-        )}
-
-        {isDetailView && !restricted && (
-          <div className={styles.spread}>
-            <div className={styles.spread__inner} style={{ paddingBottom: '15px' }}>
-              <p style={{ paddingBottom: '7.5px' }}>OBJKT&nbsp;#{id}</p>
-              {isCollab && (
-                <div className={collabStyles.relative}>
-                  <span>{verifiedSymbol}</span>
-                  <Button onClick={() => setShowSignStatus(!showSignStatus)}>
+        const renderHDAObutton = (id, balance) => {
+            return (
+                <Button onClick={() => curate(id)}>
                     <Primary>
-                      <strong>{verifiedStatus}</strong>
+                        <span
+                            className={styles.top}
+                            data-position={'top'}
+                            data-tooltip={'curate'}
+                        >
+                            〇
+                        </span>
                     </Primary>
-                  </Button>
-                  {showSignStatus && (
-                    <div className={collabStyles.collabInfo}>
-                      <div className={signStatusStyles}>
-                        <SigningSummary
-                          coreParticipants={coreParticipants}
-                          signatures={token_signatures}
-                        />
-                        <Button onClick={() => setShowSignStatus(false)}>
-                          <Secondary>
-                            close
-                          </Secondary>
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-            <Button onClick={() => handleCollect()}>
-              <Purchase>{message}</Purchase>
-            </Button>
-          </div>
+                </Button>
+            )
+        }
 
-          {isDetailView && !restricted && (
-            <Button onClick={() => handleCollect()} full={true}>
-              <Purchase primary={true}>{message}</Purchase>
-            </Button>
-          )}
-        </div>
-      </>
-    )
-  } else {
-    return (
-      <div className={styles.container}>
-        <div className={styles.edition}>
-          <div className={styles.inline}>
-            <Button
-              to={
-                `/tz/${creator?.address}`
-              }
-            >
-              {creator?.name ? (
-                <Primary>{encodeURI(creator?.name)}</Primary>
-              ) : (
-                <Primary>{walletPreview(creator?.address)}</Primary>
-              )}
-            </Button>
-          </div>
-          <div className={styles.objktContainer}>
-            <Button to={`${PATH.OBJKT}/${id}`}>
-              <Primary>OBJKT&nbsp;#{id}</Primary>
-            </Button>
-            <Button onClick={() => curate(id)}>
-              <Primary>
-                <span
-                  className={styles.top}
-                  data-position={'top'}
-                  data-tooltip={'curate'}
-                >
-                  〇
-                </span>
-              </Primary>
-            </Button>
-          </div>
-        </div>
-      </div>
-    )
-  }
+        // Check collab status
+        const isCollab = creator.is_split
+        const verifiedSymbol = isCollab && is_signed ? '✓ ' : '⚠️'
+        const verifiedStatus = isCollab && is_signed ? 'VERIFIED' : 'UNVERIFIED'
+        const isCoreParticipant = isCollab
+            ? creator.shares[0].shareholder.find(
+                  (h) => h.holder_id === acc?.address
+              )
+            : false
+
+        // Show the signing UI if required
+        const userHasSigned = token_signatures.find(
+            (sig) => sig.holder_id === acc?.address
+        )
+        const coreParticipants = isCollab
+            ? creator.shares[0].shareholder.filter(
+                  (h) => h.holder_type === CollaboratorType.CORE_PARTICIPANT
+              )
+            : null
+
+        const signStatusStyles = classNames(
+            collabStyles.flexBetween,
+            collabStyles.alignStart
+        )
+
+        return (
+            <>
+                <div style={{ height: '30px' }}></div>
+                <div className={styles.container}>
+                    <div className={styles.edition}>
+                        <div className={collabStyles.relative}>
+                            <div className={styles.inline}>
+                                {isCollab && (
+                                    <CollabIssuerInfo creator={creator} />
+                                )}
+
+                                {!isCollab && (
+                                    <Button
+                                        to={`${PATH.ISSUER}/${creator.address}`}
+                                    >
+                                        {creator.name ? (
+                                            <Primary>
+                                                {encodeURI(creator.name)}
+                                            </Primary>
+                                        ) : (
+                                            <Primary>
+                                                {walletPreview(creator.address)}
+                                            </Primary>
+                                        )}
+                                    </Button>
+                                )}
+                            </div>
+                        </div>
+
+                        {!feed && (
+                            <div>
+                                <p>
+                                    <span>
+                                        <span className={styles.edition__title}>
+                                            editions:&nbsp;
+                                        </span>
+                                        <span>
+                                            {ed}/{total}
+                                        </span>
+                                    </span>
+                                </p>
+                            </div>
+                        )}
+                    </div>
+
+                    {feed && (
+                        <div className={styles.objktContainer}>
+                            <Button
+                                to={`${PATH.OBJKT}/${id}`}
+                                disabled={isDetailView}
+                            >
+                                <Primary>OBJKT&nbsp;#{id}</Primary>
+                            </Button>
+                        </div>
+                    )}
+                </div>
+
+                {/* SHOW SIGNING UI IF COLLABORATOR */}
+                {isDetailView &&
+                    isCollab &&
+                    isCoreParticipant &&
+                    !userHasSigned && (
+                        <div
+                            className={styles.container}
+                            style={{ paddingTop: 0 }}
+                        >
+                            <SigningUI id={id} hasSigned={false} />
+                        </div>
+                    )}
+
+                {isDetailView && !restricted && (
+                    <div className={styles.spread}>
+                        <div
+                            className={styles.spread__inner}
+                            style={{ paddingBottom: '15px' }}
+                        >
+                            <p style={{ paddingBottom: '7.5px' }}>
+                                OBJKT&nbsp;#{id}
+                            </p>
+                            {isCollab && (
+                                <div className={collabStyles.relative}>
+                                    <span>{verifiedSymbol}</span>
+                                    <Button
+                                        onClick={() =>
+                                            setShowSignStatus(!showSignStatus)
+                                        }
+                                    >
+                                        <Primary>
+                                            <strong>{verifiedStatus}</strong>
+                                        </Primary>
+                                    </Button>
+                                    {showSignStatus && (
+                                        <div
+                                            className={collabStyles.collabInfo}
+                                        >
+                                            <div className={signStatusStyles}>
+                                                <SigningSummary
+                                                    coreParticipants={
+                                                        coreParticipants
+                                                    }
+                                                    signatures={
+                                                        token_signatures
+                                                    }
+                                                />
+                                                <Button
+                                                    onClick={() =>
+                                                        setShowSignStatus(false)
+                                                    }
+                                                >
+                                                    <Secondary>close</Secondary>
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                        <Button onClick={() => handleCollect()}>
+                            <Purchase>{message}</Purchase>
+                        </Button>
+                    </div>
+                )}
+            </>
+        )
+    } else {
+        return (
+            <div className={styles.container}>
+                <div className={styles.edition}>
+                    <div className={styles.inline}>
+                        <Button to={`/tz/${creator?.address}`}>
+                            {creator?.name ? (
+                                <Primary>{encodeURI(creator?.name)}</Primary>
+                            ) : (
+                                <Primary>
+                                    {walletPreview(creator?.address)}
+                                </Primary>
+                            )}
+                        </Button>
+                    </div>
+                    <div className={styles.objktContainer}>
+                        <Button to={`${PATH.OBJKT}/${id}`}>
+                            <Primary>OBJKT&nbsp;#{id}</Primary>
+                        </Button>
+                        <Button onClick={() => curate(id)}>
+                            <Primary>
+                                <span
+                                    className={styles.top}
+                                    data-position={'top'}
+                                    data-tooltip={'curate'}
+                                >
+                                    〇
+                                </span>
+                            </Primary>
+                        </Button>
+                    </div>
+                </div>
+            </div>
+        )
+    }
 }
