@@ -5,7 +5,35 @@
     --border-color: rgba(0, 0, 0, 0.1);
     --shadow-color: rgba(0, 0, 0, 0.2);
     --secondary-color: rgba(0, 0, 0, 0.5);
+
+    --gray-0: #ffffff;
+    --gray-5: #f2f2f2;
+    --gray-10: #e6e6e6;
+    --gray-15: #d9d9d9;
+    --gray-20: #cccccc;
+    --gray-30: #b3b3b3;
+    --gray-40: #999999;
+    --gray-50: #808080;
+    --gray-60: #666666;
+    --gray-70: #4d4d4d;
+    --gray-80: #333333;
+    --gray-90: #191919;
+    --gray-100: #000000;
 }
+
+$font-h1: 33.18px;
+$font-h2: 27.65px;
+$font-h3: 23.04px;
+$font-large: 19.2px;
+$font-body: 16px;
+$font-small: 13.33px;
+
+$font-h1-mobile: 25.63px;
+$font-h2-mobile: 22.78px;
+$font-h3-mobile: 20.25px;
+$font-large-mobile: 18px;
+$font-body-mobile: 16px;
+$font-small-mobile: 14.22px;
 
 $theme-duration: 0.5s;
 $mobile-padding: 1.25rem;
