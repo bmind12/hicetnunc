@@ -10,7 +10,7 @@ import { FeedItem } from '../../components/feed-item'
 import InfiniteScroll from 'react-infinite-scroll-component'
 import { renderMediaType } from '../../components/media-types'
 import './style.css'
-import { last } from 'lodash'
+import { concat, last } from 'lodash'
 
 const axios = require('axios')
 const ls = require('local-storage')
@@ -36,7 +36,10 @@ query LatestFeed {
       address
     }
   }
-}`, "LatestFeed", {});
+}`
+
+async function fetchFeed(lastId) {
+  const { errors, data } = await fetchGraphQL(latest_feed, "LatestFeed", { "lastId": lastId });
   if (errors) {
     console.error(errors);
   }
@@ -296,7 +299,6 @@ query creatorGallery {
     console.error(errors)
   }
   const result = data.hic_et_nunc_token
-  /* console.log({ result }) */
   return result
 }
 
@@ -442,7 +444,7 @@ async function fetchSubjkts(subjkt) {
 async function fetchTag(tag, offset) {
   const { errors, data } = await fetchGraphQL(
     `query ObjktsByTag {
-  hic_et_nunc_token(where: {supply : { _neq : 0 }, token_tags: {tag: {tag: {_eq: ${tag}}}}, id: {_lt: ${offset}}}, limit : 15, order_by: {id: desc}) {
+  hic_et_nunc_token(where: {supply : { _neq : 0 }, token_tags: {tag: {tag: {_eq: ${tag}}}}}, limit : 30, order_by: {id: desc}, offset : ${offset}) {
     id
     artifact_uri
     display_uri
@@ -512,7 +514,7 @@ async function fetchHdao(offset) {
 const getRestrictedAddresses = async () =>
   await axios
     .get(
-      'https://raw.githubusercontent.com/hicetnunc2000/hicetnunc-reports/main/filters/w.json'
+      'https://raw.githubusercontent.com/hicetnunc2000/hicetnunc/main/filters/w.json'
     )
     .then((res) => res.data)
 
@@ -523,6 +525,7 @@ export class Search extends Component {
     subjkt: [],
     items: [],
     feed: [],
+    filter: [],
     search: '',
     select: '',
     prev: '',
@@ -568,8 +571,8 @@ export class Search extends Component {
   update = async (e, reset) => {
 
     let arr = await getRestrictedAddresses()
-
     this.setState({ select: e })
+
     if (reset) {
       this.state.feed = []
       this.state.offset = 0
@@ -577,14 +580,14 @@ export class Search extends Component {
 
     if (e === '1D') {
 
-      let list = await fetchDay(new Date((new Date()).getTime() - 60 * 60 * 24 * 1000).toISOString(), this.state.offset)
+      let list = await fetchDay(new Date((new Date()).getTime() - 60*60*24*1000).toISOString(), this.state.offset)
       list = list.map(e => e.token)
       list = [...this.state.feed, ...(list)]
       list = list.filter(e => !arr.includes(e.creator.address))
       list = _.uniqBy(list, 'id')
 
       this.setState({
-        feed: list
+        feed : list
       })
     }
 
@@ -609,9 +612,8 @@ export class Search extends Component {
       list = list.filter(e => !arr.includes(e.creator.address))
 
       list = _.uniqBy(list, 'id')
-
       this.setState({
-        feed: list
+        feed : list.filter(e => !arr.includes(e.creator_id))
       })
     }
 
