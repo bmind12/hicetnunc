@@ -101,6 +101,9 @@ trades(order_by: {timestamp: asc}) {
     address
     name
   }
+  timestamp
+}
+}
 }
 `
 
