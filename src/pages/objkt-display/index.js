@@ -74,6 +74,7 @@ swaps {
   royalties
   creator_id
   is_valid
+  ophash
 }
 token_holders(where: {quantity: {_gt: "0"}}) {
   holder_id
@@ -102,6 +103,7 @@ trades(order_by: {timestamp: asc}) {
     name
   }
   timestamp
+  ophash
 }
 }
 }

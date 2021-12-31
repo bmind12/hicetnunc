@@ -2,12 +2,20 @@
 @import '../../../styles/layout.scss';
 
 .container {
-  position: relative;
-  width: 100%;
-  min-height: 100vh;
-  padding: 100px 0 0 0;
+    position: relative;
+    width: 100%;
+    min-height: 100vh;
+    padding: 100px #{$mobile-padding} 0;
 
-  &.large {
-    padding: 150px 0 0 0;
-  }
+    &.large {
+        padding: 150px #{$mobile-padding} 0;
+    }
+
+    @include respond-to('desktop') {
+        padding: 100px 0 0;
+
+        &.large {
+            padding: 150px 0 0;
+        }
+    }
 }
