@@ -7,6 +7,7 @@ import { Input, Textarea } from '../../components/input'
 import { Button, Curate, Primary, Purchase } from '../../components/button'
 import { Upload } from '../../components/upload'
 import { Preview } from '../../components/preview'
+import { useLocalStorage } from '../../hooks/useLocalStorage'
 import {
     prepareFile,
     prepareFile100MB,
@@ -74,6 +75,7 @@ export const Mint = () => {
     const [needsCover, setNeedsCover] = useState(false)
     const [collabs, setCollabs] = useState([])
     const [selectCollab, setSelectCollab] = useState(false)
+    const [storedValue, setValue] = useLocalStorage('mint-form', null)
 
     // On mount, see if there are available collab contracts
     useEffect(() => {
@@ -227,7 +229,9 @@ export const Mint = () => {
                 path: nftCid.path,
                 royalties,
             })
-            mint(minterAddress, amount, nftCid.path, royalties)
+            mint(minterAddress, amount, nftCid.path, royalties).finally(
+                setValue(null)
+            )
         }
     }
 
@@ -370,48 +374,82 @@ export const Mint = () => {
 
                             <Input
                                 type="text"
-                                onChange={(e) => setTitle(e.target.value)}
+                                onChange={(e) => {
+                                    setTitle(e.target.value)
+                                    setValue({
+                                        ...storedValue,
+                                        title: e.target.value,
+                                    })
+                                }}
                                 placeholder="title"
                                 label="title"
-                                value={title}
+                                value={title || storedValue?.title}
                             />
 
                             <Textarea
                                 type="text"
                                 style={{ whiteSpace: 'pre' }}
-                                onChange={(e) => setDescription(e.target.value)}
+                                onChange={(e) => {
+                                    setDescription(e.target.value)
+                                    setValue({
+                                        ...storedValue,
+                                        description: e.target.value,
+                                    })
+                                }}
                                 placeholder="description (max 5000 characters)"
                                 label="description"
-                                value={description}
+                                value={description || storedValue?.description}
                             />
 
                             <Input
                                 type="text"
-                                onChange={(e) => setTags(e.target.value)}
+                                onChange={(e) => {
+                                    setTags(e.target.value)
+                                    setValue({
+                                        ...storedValue,
+                                        tags: e.target.value,
+                                    })
+                                }}
                                 placeholder="tags (comma separated. example: illustration, digital)"
                                 label="tags"
-                                value={tags}
+                                value={tags || storedValue?.tags}
                             />
 
                             <Input
                                 type="number"
                                 min={1}
                                 max={MAX_EDITIONS}
-                                onChange={(e) => setAmount(e.target.value)}
+                                onChange={(e) => {
+                                    setAmount(e.target.value)
+                                    setValue({
+                                        ...storedValue,
+                                        amount: e.target.value,
+                                    })
+                                }}
                                 onBlur={(e) => {
                                     limitNumericField(e.target, 1, MAX_EDITIONS)
                                     setAmount(e.target.value)
+                                    setValue({
+                                        ...storedValue,
+                                        amount: e.target.value,
+                                    })
                                 }}
                                 placeholder={`editions (no. editions, 1-${MAX_EDITIONS})`}
                                 label="editions"
-                                value={amount}
+                                value={amount || storedValue?.amount}
                             />
 
                             <Input
                                 type="number"
                                 min={MIN_ROYALTIES}
                                 max={MAX_ROYALTIES}
-                                onChange={(e) => setRoyalties(e.target.value)}
+                                onChange={(e) => {
+                                    setRoyalties(e.target.value)
+                                    setValue({
+                                        ...storedValue,
+                                        royalties: e.target.value,
+                                    })
+                                }}
                                 onBlur={(e) => {
                                     limitNumericField(
                                         e.target,
@@ -419,10 +457,14 @@ export const Mint = () => {
                                         MAX_ROYALTIES
                                     )
                                     setRoyalties(e.target.value)
+                                    setValue({
+                                        ...storedValue,
+                                        royalties: e.target.value,
+                                    })
                                 }}
                                 placeholder={`royalties after each sale (between ${MIN_ROYALTIES}-${MAX_ROYALTIES}%)`}
                                 label="royalties"
-                                value={royalties}
+                                value={royalties || storedValue?.royalties}
                             />
                         </Padding>
                     </Container>
